@@ -15,7 +15,6 @@ import (
 	wof_uri "github.com/whosonfirst/go-whosonfirst-uri"	
 	sql_reader "github.com/whosonfirst/go-reader-database-sql"
 	_ "github.com/mattn/go-sqlite3"
-	"log"
 	"io"
 	"os"
 	"strconv"
@@ -35,8 +34,8 @@ func main() {
 	r, _ := reader.NewReader(ctx, uri)
 
 	fh, _ := r.Read(ctx, "102/065/003/102065003.geojson")
-
 	defer fh.Close()
+	
 	io.Copy(os.Stdout, fh)		
 }
 ```
