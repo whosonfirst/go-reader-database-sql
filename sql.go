@@ -10,10 +10,24 @@ import (
 	"io/ioutil"
 	_ "log"
 	"net/url"
+	"regexp"
 	"strings"
 )
 
+type readFunc func(string) (string, error)
+
+var VALID_TABLE *regexp.Regexp
+var VALID_KEY *regexp.Regexp
+var VALID_VALUE *regexp.Regexp
+
+var URI_READFUNC readFunc
+
 func init() {
+
+	VALID_TABLE = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
+	VALID_KEY = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
+	VALID_VALUE = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
+
 	r := NewSQLReader()
 	wof_reader.Register("sql", r)
 }
@@ -70,7 +84,17 @@ func (r *SQLReader) Open(ctx context.Context, uri string) error {
 		return err
 	}
 
-	// check for table, etc. here?
+	if !VALID_TABLE.MatchString(table) {
+		return errors.New("Invalid table")
+	}
+
+	if !VALID_KEY.MatchString(key) {
+		return errors.New("Invalid key")
+	}
+
+	if !VALID_VALUE.MatchString(value) {
+		return errors.New("Invalid value")
+	}
 
 	r.conn = conn
 	r.table = table
@@ -81,6 +105,17 @@ func (r *SQLReader) Open(ctx context.Context, uri string) error {
 }
 
 func (r *SQLReader) Read(ctx context.Context, uri string) (io.ReadCloser, error) {
+
+	if URI_READFUNC != nil {
+
+		new_uri, err := URI_READFUNC(uri)
+
+		if err != nil {
+			return nil, err
+		}
+
+		uri = new_uri
+	}
 
 	q := fmt.Sprintf("SELECT %s FROM %s WHERE %s=?", r.value, r.table, r.key)
 
