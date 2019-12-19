@@ -47,6 +47,7 @@ func (r *SQLReader) Open(ctx context.Context, uri string) error {
 	driver := u.Host
 	path := u.Path
 
+	path = strings.TrimLeft(path, "/")
 	parts := strings.Split(path, "/")
 
 	if len(parts) != 3 {
