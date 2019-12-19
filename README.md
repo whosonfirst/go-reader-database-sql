@@ -1,5 +1,7 @@
 # go-reader-database-sql
 
+[database/sql](https://golang.org/pkg/database/sql/) support for the go-reader Reader interface. 
+
 ## Important
 
 Work in progress. Documentation to follow.
