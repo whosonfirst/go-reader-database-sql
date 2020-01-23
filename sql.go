@@ -16,11 +16,14 @@ import (
 
 type readFunc func(string) (string, error)
 
+type queryFunc func(string) (string, []interface{}, error)
+
 var VALID_TABLE *regexp.Regexp
 var VALID_KEY *regexp.Regexp
 var VALID_VALUE *regexp.Regexp
 
 var URI_READFUNC readFunc
+var URI_QUERYFUNC queryFunc
 
 func init() {
 
@@ -104,11 +107,13 @@ func (r *SQLReader) Open(ctx context.Context, uri string) error {
 	return nil
 }
 
-func (r *SQLReader) Read(ctx context.Context, uri string) (io.ReadCloser, error) {
+func (r *SQLReader) Read(ctx context.Context, raw_uri string) (io.ReadCloser, error) {
+
+	uri := raw_uri
 
 	if URI_READFUNC != nil {
 
-		new_uri, err := URI_READFUNC(uri)
+		new_uri, err := URI_READFUNC(raw_uri)
 
 		if err != nil {
 			return nil, err
@@ -119,7 +124,31 @@ func (r *SQLReader) Read(ctx context.Context, uri string) (io.ReadCloser, error)
 
 	q := fmt.Sprintf("SELECT %s FROM %s WHERE %s=?", r.value, r.table, r.key)
 
-	row := r.conn.QueryRowContext(ctx, q, uri)
+	q_args := []interface{}{
+		uri,
+	}
+
+	if URI_QUERYFUNC != nil {
+
+		extra_where, extra_args, err := URI_QUERYFUNC(raw_uri)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if extra_where != "" {
+
+			q = fmt.Sprintf("%s AND %s", q, extra_where)
+
+			for _, a := range extra_args {
+				q_args = append(q_args, a)
+			}
+		}
+	}
+
+	// log.Println(q, q_args)
+
+	row := r.conn.QueryRowContext(ctx, q, q_args...)
 
 	var body string
 	err := row.Scan(&body)
