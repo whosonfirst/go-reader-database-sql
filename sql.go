@@ -31,8 +31,25 @@ func init() {
 	VALID_KEY = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
 	VALID_VALUE = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
 
+	ctx := context.Background()
+	err := wof_reader.RegisterReader(ctx, "sql", initializeSQLReader)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func initializeSQLReader(ctx context.Context, uri string) (wof_reader.Reader, error) {
+
 	r := NewSQLReader()
-	wof_reader.Register("sql", r)
+
+	err := r.Open(ctx, uri)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 type SQLReader struct {

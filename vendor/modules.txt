@@ -1,2 +1,4 @@
-# github.com/whosonfirst/go-reader v0.0.3
+# github.com/aaronland/go-roster v0.0.1
+github.com/aaronland/go-roster
+# github.com/whosonfirst/go-reader v0.1.1
 github.com/whosonfirst/go-reader
