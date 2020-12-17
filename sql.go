@@ -32,24 +32,11 @@ func init() {
 	VALID_VALUE = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
 
 	ctx := context.Background()
-	err := wof_reader.RegisterReader(ctx, "sql", initializeSQLReader)
+	err := wof_reader.RegisterReader(ctx, "sql", NewSQLReader)
 
 	if err != nil {
 		panic(err)
 	}
-}
-
-func initializeSQLReader(ctx context.Context, uri string) (wof_reader.Reader, error) {
-
-	r := NewSQLReader()
-
-	err := r.Open(ctx, uri)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return r, nil
 }
 
 type SQLReader struct {
@@ -60,20 +47,14 @@ type SQLReader struct {
 	value string
 }
 
-func NewSQLReader() wof_reader.Reader {
-
-	r := SQLReader{}
-	return &r
-}
-
 // sql://sqlite/geojson/id/body/?dsn=....
 
-func (r *SQLReader) Open(ctx context.Context, uri string) error {
+func NewSQLReader(ctx context.Context, uri string) (wof_reader.Reader, error) {
 
 	u, err := url.Parse(uri)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	q := u.Query()
@@ -85,7 +66,7 @@ func (r *SQLReader) Open(ctx context.Context, uri string) error {
 	parts := strings.Split(path, "/")
 
 	if len(parts) != 3 {
-		return errors.New("Invalid path")
+		return nil, errors.New("Invalid path")
 	}
 
 	table := parts[0]
@@ -95,33 +76,35 @@ func (r *SQLReader) Open(ctx context.Context, uri string) error {
 	dsn := q.Get("dsn")
 
 	if dsn == "" {
-		return errors.New("Missing dsn parameter")
+		return nil, errors.New("Missing dsn parameter")
 	}
 
 	conn, err := sql.Open(driver, dsn)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !VALID_TABLE.MatchString(table) {
-		return errors.New("Invalid table")
+		return nil, errors.New("Invalid table")
 	}
 
 	if !VALID_KEY.MatchString(key) {
-		return errors.New("Invalid key")
+		return nil, errors.New("Invalid key")
 	}
 
 	if !VALID_VALUE.MatchString(value) {
-		return errors.New("Invalid value")
+		return nil, errors.New("Invalid value")
 	}
 
-	r.conn = conn
-	r.table = table
-	r.key = key
-	r.value = value
+	r := &SQLReader{
+		conn:  conn,
+		table: table,
+		key:   key,
+		value: value,
+	}
 
-	return nil
+	return r, nil
 }
 
 func (r *SQLReader) Read(ctx context.Context, raw_uri string) (io.ReadCloser, error) {
