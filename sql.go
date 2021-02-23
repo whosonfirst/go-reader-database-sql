@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	wof_reader "github.com/whosonfirst/go-reader"
+	"github.com/whosonfirst/go-reader/ioutil"
 	"io"
-	"io/ioutil"
 	_ "log"
 	"net/url"
 	"regexp"
@@ -47,7 +47,7 @@ type SQLReader struct {
 	value string
 }
 
-// sql://sqlite/geojson/id/body/?dsn=....
+// sql://sqlite/geojson/id/body?dsn=....
 
 func NewSQLReader(ctx context.Context, uri string) (wof_reader.Reader, error) {
 
@@ -107,7 +107,7 @@ func NewSQLReader(ctx context.Context, uri string) (wof_reader.Reader, error) {
 	return r, nil
 }
 
-func (r *SQLReader) Read(ctx context.Context, raw_uri string) (io.ReadCloser, error) {
+func (r *SQLReader) Read(ctx context.Context, raw_uri string) (io.ReadSeekCloser, error) {
 
 	uri := raw_uri
 
@@ -158,7 +158,29 @@ func (r *SQLReader) Read(ctx context.Context, raw_uri string) (io.ReadCloser, er
 	}
 
 	sr := strings.NewReader(body)
-	fh := ioutil.NopCloser(sr)
+	fh, err := ioutil.NewReadSeekCloser(sr)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return fh, nil
+}
+
+func (r *SQLReader) ReaderURI(ctx context.Context, raw_uri string) string {
+
+	uri := raw_uri
+
+	if URI_READFUNC != nil {
+
+		new_uri, err := URI_READFUNC(raw_uri)
+
+		if err != nil {
+			return ""
+		}
+
+		uri = new_uri
+	}
+
+	return uri
 }
