@@ -13,13 +13,14 @@ package main
 
 import (
 	"context"
+	"io"
+	"os"
+	"strconv"
+
 	"github.com/whosonfirst/go-reader"
 	wof_uri "github.com/whosonfirst/go-whosonfirst-uri"	
 	sql_reader "github.com/whosonfirst/go-reader-database-sql"
 	_ "github.com/mattn/go-sqlite3"
-	"io"
-	"os"
-	"strconv"
 )
 
 func main() {
