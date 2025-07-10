@@ -1,10 +1,10 @@
 module github.com/whosonfirst/go-reader-database-sql
 
-go 1.23.3
+go 1.22
 
 require (
 	github.com/whosonfirst/go-ioutil v1.0.2
-	github.com/whosonfirst/go-reader v1.0.2
+	github.com/whosonfirst/go-reader v1.1.0
 	github.com/whosonfirst/go-whosonfirst-uri v1.3.0
 )
 
