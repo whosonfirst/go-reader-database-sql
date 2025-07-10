@@ -4,7 +4,7 @@
 
 ## Important
 
-Work in progress. Documentation to follow.
+This package has been deprecated. Its functionality has been moved in to the [whosonfirst/go-reader/v2](https://github.com/whosonfirst/go-reader) package.
 
 ## Example
 
